@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-image: url('ShinyGoldGlitter.jpeg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            margin: 0;
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid black;
+            margin-top: 20px;
+            image-rendering: optimizeSpeed;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: -o-crisp-edges;
+            image-rendering: crisp-edges;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+
+    .slider {
+        width: 300px;
+        margin-top: 10px;
+        -webkit-appearance: none;
+        background: transparent;   /* Make track transparent */
+        height: 8px;
+        border-radius: 5px;
+        outline: none;
+    }
+
+    /* Chrome, Safari, Edge */
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #FFD700;       /* Light gold thumb */
+        border-radius: 50%;
+        border: 2px solid #e6c200; /* optional darker gold border */
+        cursor: pointer;
+        margin-top: -6px;           /* vertically center thumb */
+    }
+
+    /* Firefox */
+    .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #FFD700;
+        border-radius: 50%;
+        border: 2px solid #e6c200;
+        cursor: pointer;
+    }
+    </style>
+</head>
+<body>
+
+    <!-- <h1>Needs More Pixels</h1> -->
+    <br>
+    <br>
+    <br>
+    <!-- Canvas -->
+    <canvas id="canvas" onclick="pixelateNext()"></canvas>
+
+    <br>
+    <br>
+    <!-- Slider -->
+    <input type="range" min="1" max="7" value="1" class="slider" id="myRange">    
+
+    <script>
+        // Get elements
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        var slider = document.getElementById('myRange');
+
+        // Load image
+        var img = new Image();
+        img.src = 'Friends-Turkey-2.jpg';
+        img.onload = start;
+
+        // Variables for image size and centering
+        var w, h;
+        var dx = 0, dy = 0;
+
+        // Toggle smoothing for pixelation
+        function setSmooth(on) {
+            ctx.mozImageSmoothingEnabled = on;
+            ctx.webkitImageSmoothingEnabled = on;
+            ctx.imageSmoothingEnabled = on;
+        }
+
+        // Initialize canvas and draw first pixelation
+        function start() {
+        	var maxW = 1280;
+			var maxH = 720;
+			var scale = Math.min(maxW / img.width, maxH / img.height, 1);
+            // Set canvas to image's natural size
+            canvas.width = Math.floor(img.width * scale);
+            canvas.height = Math.floor(img.height * scale);
+
+            w = canvas.width;
+            h = canvas.height;
+            dx = 0;
+            dy = 0;
+
+            pixelateFirst();
+        }
+
+        // Pixelate functions
+        function pixelateCur() {
+		    pixelate(parseInt(slider.value, 10)); // ensure integer
+		}
+
+        function pixelate(level) {
+		    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		    // Ensure level is 1–7
+		    level = Math.min(Math.max(level, 1), 7);
+
+		    // Map level to pixelation factor
+		    // Level 1 = most pixelated, Level 7 = least pixelated
+		    var maxBlock = 50;  // largest block for very pixelated image
+		    var minBlock = 1;   // smallest block at level 7
+		    var pixelBlock = Math.round(maxBlock - (level - 1) * (maxBlock - minBlock) / 6);
+
+		    // Downscale image to pixelated size
+		    var tempW = Math.max(Math.floor(w / pixelBlock), 1);
+		    var tempH = Math.max(Math.floor(h / pixelBlock), 1);
+
+		    // Draw downscaled image to create pixelation
+		    setSmooth(true);
+		    ctx.drawImage(img, 0, 0, tempW, tempH);
+
+		    // Upscale back to full canvas without smoothing
+		    setSmooth(false);
+		    ctx.drawImage(canvas, 0, 0, tempW, tempH, 0, 0, w, h);
+		}
+
+        // Slider event
+        slider.oninput = pixelateCur;
+
+        // Arrow keys for quick pixelation
+        document.onkeydown = function(e) {
+            e = e || window.event;
+
+            if (e.keyCode == 38) pixelateFirst();    // Up
+            else if (e.keyCode == 40) pixelateLast(); // Down
+            else if (e.keyCode == 37) pixelatePrev(); // Left
+            else if (e.keyCode == 39) pixelateNext(); // Right
+        };
+
+function pixelateNext() {
+    let val = parseInt(slider.value, 10);
+    val = Math.min(7, val + 1); // max 7
+    slider.value = val;
+    pixelateCur();
+}
+
+function pixelatePrev() {
+    let val = parseInt(slider.value, 10);
+    val = Math.max(1, val - 1); // min 1
+    slider.value = val;
+    pixelateCur();
+}
+
+function pixelateFirst() {
+    slider.value = 1;
+    pixelateCur();
+}
+
+function pixelateLast() {
+    slider.value = 7;
+    pixelateCur();
+}
+    </script>
+</body>
+</html>
